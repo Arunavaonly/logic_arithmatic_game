@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Archimedes' Math Quest — An elegant arithmetic and logic puzzle game with 4 progressive levels guided by the great Archimedes." />
+  <title>Archimedes' Math Quest</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <!-- Game CSS -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/archimedes.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════ ARCHIMEDES CHARACTER ══════════════════════════ -->
+<!-- Archimedes figure injected by js/archimedes-svg.js (PNG-based) -->
+
+
+
+<!-- ── Persistent Header ─────────────────────────────────────────────── -->
+<header class="app-header" role="banner">
+  <div class="brand">🏛️ ARCHIMEDES' MATH QUEST</div>
+  <div class="header-controls">
+    <button id="btn-sound" aria-label="Toggle sound" title="Sound">🔊</button>
+    <button id="btn-lang"  aria-label="Toggle language" title="Language">বাং</button>
+    <button id="btn-theme" aria-label="Toggle dark mode" title="Theme">☀️</button>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════ SCREEN: HOME ══════════════════════════════ -->
+<div id="screen-home" class="screen" role="main">
+  <canvas id="starfield" aria-hidden="true"></canvas>
+
+  <div class="home-content">
+    <!-- Archimedes on home -->
+    <div class="home-archimedes-wrap">
+      <!-- Figure inserted by JS -->
+      <div id="archimedes-home-fig"></div>
+      <div class="speech-bubble" id="home-speech-bubble" role="status" aria-live="polite">
+        <span id="home-speech-text"></span>
+      </div>
+    </div>
+
+    <h1 class="game-title">Archimedes' Math Quest</h1>
+    <p class="game-subtitle">A Journey of Intellectual Mastery</p>
+
+    <div class="level-cards" id="level-cards" role="list" aria-label="Level selection">
+      <!-- Built by game.js -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ SCREEN: GAME ══════════════════════════════ -->
+<div id="screen-game" class="screen">
+
+  <!-- Fixed game sub-header -->
+  <div class="game-header" role="toolbar">
+    <button id="btn-home" class="btn-back" aria-label="Return to home">🏠</button>
+    <div class="level-info-bar">
+      <span id="game-level-name" aria-live="polite"></span>
+      <div class="progress-dots" id="progress-dots" aria-label="Progress" role="progressbar"></div>
+      <span id="question-counter" aria-live="polite"></span>
+    </div>
+    <div class="game-stats">
+      <span id="game-score" aria-live="polite"></span>
+      <div  id="timer-display" class="timer" aria-live="assertive"></div>
+    </div>
+  </div>
+
+  <div class="game-body">
+
+    <!-- Archimedes Sidebar -->
+    <aside class="archimedes-sidebar" aria-label="Game master Archimedes">
+      <div id="archimedes-game-fig"></div>
+      <div class="speech-bubble" id="speech-bubble" role="status" aria-live="polite">
+        <span id="speech-text"></span>
+      </div>
+    </aside>
+
+    <!-- Question Area -->
+    <main class="question-area">
+      <div class="problem-type-badge" id="problem-type" aria-label="Problem type"></div>
+
+      <div class="problem-card" id="problem-card" role="region" aria-label="Problem">
+        <div id="problem-text" aria-live="polite"></div>
+      </div>
+
+      <div class="answer-section">
+        <div class="answer-input-wrap">
+          <input
+            type="text"
+            id="answer-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="Type your answer…"
+            aria-label="Your answer"
+          />
+          <button id="btn-submit" class="btn-primary">Submit</button>
+        </div>
+        <div class="answer-feedback" id="answer-feedback" role="status" aria-live="assertive"></div>
+      </div>
+
+      <div class="game-actions">
+        <button id="btn-hint" class="btn-hint" aria-label="Get a hint">💡 Hint</button>
+        <button id="btn-skip" class="btn-skip" aria-label="Skip this question">⏭ Skip (2)</button>
+      </div>
+
+      <!-- Streak visualizer -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem;">
+        <canvas id="streak-canvas" width="72" height="72" aria-hidden="true"></canvas>
+        <div id="streak-info" style="font-size:0.72rem;color:var(--text-muted);"></div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ SCREEN: REWARD ═════════════════════════════ -->
+<div id="screen-reward" class="screen" role="main">
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <div class="reward-content">
+    <!-- Archimedes celebrating -->
+    <div id="archimedes-reward-fig"></div>
+
+    <h2 class="reward-title" aria-live="assertive">Level Complete! 🎉</h2>
+
+    <!-- Badge -->
+    <div class="badge-display" id="badge-display" role="img" aria-label="Reward badge"></div>
+
+    <!-- Score card -->
+    <div class="score-card" id="score-card" aria-label="Score summary"></div>
+
+    <!-- Category breakdown -->
+    <div class="category-breakdown" id="category-breakdown" aria-label="Performance by category"></div>
+
+    <!-- Lore unlock -->
+    <div class="lore-card" id="lore-card" aria-label="Historical lore"></div>
+
+    <!-- Actions -->
+    <div class="reward-actions">
+      <button id="btn-next-level" class="btn-primary">Next Level →</button>
+      <button id="btn-home-reward" class="btn-secondary">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ SCREEN: FAIL ══════════════════════════════ -->
+<div id="screen-fail" class="screen" role="main">
+  <div id="fail-content" style="text-align:center;padding:5rem 1.5rem;max-width:480px;margin:0 auto;" aria-live="assertive"></div>
+</div>
+
+
+<!-- ── Scripts ──────────────────────────────────────────────────────────── -->
+<script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/streak.js"></script>
+<script src="js/archimedes.js"></script>
+<script src="js/rewards.js"></script>
+
+<!-- Archimedes figure (injects PNG-based <img>) -->
+<script src="js/archimedes-svg.js"></script>
+
+<script src="js/game.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+/* archimedes.css — Archimedes figure keyframe animations */
+
+/* ── Base figure ──────────────────────────────────────────── */
+.archimedes-figure {
+  display: inline-block;
+  position: relative;
+  width: 160px;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.55));
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Home variant is larger */
+.home-archimedes-wrap .archimedes-figure { width: 200px; }
+
+.archimedes-figure .archimedes-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* ── IDLE — gentle float ──────────────────────────────────── */
+.archimedes-figure.state-idle {
+  animation: archiFloat 3.6s ease-in-out infinite;
+}
+@keyframes archiFloat {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-7px); }
+}
+
+/* ── THINKING — head tilt, hand to chin ──────────────────── */
+.archimedes-figure.state-thinking {
+  animation: archiThink 0.5s ease forwards;
+}
+@keyframes archiThink {
+  to { transform: rotate(-4deg) translateY(-3px); }
+}
+
+/* ── CELEBRATING — bounce + arms up ──────────────────────── */
+.archimedes-figure.state-celebrating {
+  animation: archiCelebrate 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards,
+             archiBounce     0.7s 0.55s ease-in-out infinite;
+}
+@keyframes archiCelebrate {
+  0%   { transform: scale(1) translateY(0); }
+  50%  { transform: scale(1.12) translateY(-12px); }
+  100% { transform: scale(1.06) translateY(-8px); }
+}
+@keyframes archiBounce {
+  0%,100% { transform: scale(1.06) translateY(-8px); }
+  50%      { transform: scale(1.06) translateY(-14px); }
+}
+
+/* ── DISAPPOINTED — droop ─────────────────────────────────── */
+.archimedes-figure.state-disappointed {
+  animation: archiDisappoint 0.4s ease forwards;
+}
+@keyframes archiDisappoint {
+  to { transform: rotate(3deg) translateY(4px) scale(0.96); }
+}
+
+/* ── Celebrating sparkles overlay (works for PNG) ─────────── */
+.archimedes-figure::before,
+.archimedes-figure::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  opacity: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+
+/* 3 small “star” blobs */
+.archimedes-figure::before {
+  background-image:
+    radial-gradient(circle at 18% 18%, rgba(254, 240, 138, 0.95) 0 6px, rgba(254, 240, 138, 0) 7px),
+    radial-gradient(circle at 86% 24%, rgba(253, 224, 71, 0.95) 0 5px, rgba(253, 224, 71, 0) 6px),
+    radial-gradient(circle at 24% 64%, rgba(253, 224, 71, 0.85) 0 4px, rgba(253, 224, 71, 0) 5px);
+  filter: blur(0.2px);
+}
+
+/* a soft glow */
+.archimedes-figure::after {
+  background-image:
+    radial-gradient(circle at 55% 30%, rgba(253, 224, 71, 0.18) 0 60px, rgba(253, 224, 71, 0) 62px);
+  filter: blur(0.4px);
+}
+
+.archimedes-figure.state-celebrating::before {
+  animation: sparklePulse 0.85s ease-in-out infinite alternate;
+}
+.archimedes-figure.state-celebrating::after {
+  animation: glowPulse 0.85s ease-in-out infinite alternate;
+}
+
+@keyframes sparklePulse {
+  0%   { opacity: 0; transform: scale(0.6) rotate(0deg); }
+  60%  { opacity: 1; }
+  100% { opacity: 0.65; transform: scale(1.08) rotate(18deg); }
+}
+
+@keyframes glowPulse {
+  0%   { opacity: 0.0; transform: scale(0.95); }
+  100% { opacity: 1.0; transform: scale(1.05); }
+}
+
+/* ── SVG internal part animations (no-op for PNG) ────────── */
+
+/* Eyelid blink — path elements used as overlay flaps */
+.archimedes-figure .arch-eyelid-l,
+.archimedes-figure .arch-eyelid-r {
+  animation: archiBlink 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center top;
+}
+.archimedes-figure .arch-eyelid-r { animation-delay: 0.08s; }
+@keyframes archiBlink {
+  0%,90%,100% { transform: scaleY(0); }
+  93%,97%     { transform: scaleY(1); }
+}
+
+/* Beard gentle sway */
+.archimedes-figure .arch-beard {
+  transform-origin: top center;
+  animation: beardSway 4s ease-in-out infinite;
+}
+@keyframes beardSway {
+  0%,100% { transform: rotate(0deg); }
+  35%     { transform: rotate(1.5deg); }
+  70%     { transform: rotate(-1.5deg); }
+}
+
+/* Left arm raises on celebration */
+.archimedes-figure.state-celebrating .arch-arm-l {
+  transform-box: fill-box;
+  transform-origin: right center;
+  animation: armRaise 0.45s ease forwards;
+}
+@keyframes armRaise {
+  to { transform: rotate(-50deg); }
+}
+
+/* Robe ripple on idle */
+.archimedes-figure.state-idle .arch-robe {
+  animation: robeRipple 4s ease-in-out infinite;
+  transform-origin: top center;
+}
+@keyframes robeRipple {
+  0%,100% { transform: scaleX(1); }
+  50%     { transform: scaleX(1.015); }
+}
+
+/* Sparkle elements — only shown on celebrating */
+.arch-sparkle {
+  opacity: 0;
+  transform-origin: center;
+}
+.archimedes-figure.state-celebrating .arch-sparkle {
+  animation: sparkleAnim 0.8s ease-in-out infinite alternate;
+}
+.archimedes-figure.state-celebrating .arch-sparkle:nth-child(2) { animation-delay: 0.2s; }
+.archimedes-figure.state-celebrating .arch-sparkle:nth-child(3) { animation-delay: 0.4s; }
+@keyframes sparkleAnim {
+  0%   { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  60%  { opacity: 1; }
+  100% { opacity: 0.6; transform: scale(1.1) rotate(45deg); }
+}
+
+/* Badge pop animation */
+.badge-icon.badge-pop {
+  animation: badgePop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes badgePop {
+  0%   { transform: scale(0) rotate(-15deg); }
+  70%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Screen transition */
+.screen { animation: screenFadeIn 0.35s ease; }
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Correct / Wrong card flash */
+@keyframes correctFlash {
+  0%,100% { box-shadow: var(--shadow-card); }
+  50%      { box-shadow: 0 0 40px rgba(46,204,113,0.5); }
+}
+@keyframes wrongFlash {
+  0%,100% { box-shadow: var(--shadow-card); }
+  50%      { box-shadow: 0 0 30px rgba(231,76,60,0.4); }
+}
