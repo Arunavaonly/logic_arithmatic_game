@@ -561,7 +561,7 @@ const Game = (() => {
 
       setTimeout(() => {
         const homeText = getLang() === 'en'
-          ? "Welcome to Archimedes' Math Quest! I am Archimedes. Complete the first level to unlock the next. Choose your trial to begin."
+          ? "Welcome to Puzzle Parthenon! I am Archimedes. Complete the first level to unlock the next. Choose your trial to begin."
           : "আর্কিমিডিসের গণিত সন্ধানে স্বাগতম! আমি আর্কিমিডিস। পরবর্তী স্তর খুলতে প্রথম স্তরটি শেষ করো। তোমার পরীক্ষা বেছে নাও।";
         Archimedes.speakHome(homeText, 40);
       }, 500);

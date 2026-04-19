@@ -1,7 +1,7 @@
 // i18n.js — English + Bengali string tables
 const I18N = {
   en: {
-    gameTitle: "Archimedes' Math Quest",
+    gameTitle: "Puzzle Parthenon",
     gameSubtitle: "A Journey of Intellectual Mastery",
     levelSelect: "Choose Your Trial",
     levelLocked: "Locked",

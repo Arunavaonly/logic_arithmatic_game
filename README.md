@@ -1,4 +1,4 @@
-# Archimedes' Math Quest
+# Puzzle Parthenon
 
 A browser-based arithmetic + logic puzzle game with progressive levels, hints, score, and a guided “Archimedes” character.
 
