@@ -561,8 +561,8 @@ const Game = (() => {
 
       setTimeout(() => {
         const homeText = getLang() === 'en'
-          ? "Welcome to Puzzle Parthenon! I am Archimedes. Complete the first level to unlock the next. Choose your trial to begin."
-          : "আর্কিমিডিসের গণিত সন্ধানে স্বাগতম! আমি আর্কিমিডিস। পরবর্তী স্তর খুলতে প্রথম স্তরটি শেষ করো। তোমার পরীক্ষা বেছে নাও।";
+          ? "Welcome to Puzzle Parthenon! I am Archimedes, your game master. Complete the first level to unlock the next. Choose your trial to begin. Click on the hint button to ask for my help"
+          : "পাজল পার্থেননে স্বাগতম! আমি আর্কিমিডিস, তোমার গেম মাস্টার। পরবর্তী স্তর খুলতে প্রথম স্তরটি শেষ করো। তোমার পরীক্ষা বেছে নাও। 'hint' বাটনে ক্লিক করলে আমি তোমাকে সাহায্য করবো।";
         Archimedes.speakHome(homeText, 40);
       }, 500);
 
