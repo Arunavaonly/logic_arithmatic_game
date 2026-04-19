@@ -21,6 +21,41 @@
   pointer-events: none;
 }
 
+/* ── Sprite-sheet mode (more expressive PNG animation) ────── */
+.archimedes-figure--sprite {
+  width: calc(var(--sprite-frame-width, 220) * 1px);
+  aspect-ratio: var(--sprite-frame-width, 220) / var(--sprite-frame-height, 380);
+}
+.home-archimedes-wrap .archimedes-figure--sprite { width: 200px; }
+
+.archimedes-figure--sprite .archimedes-sprite {
+  width: 100%;
+  height: 100%;
+  background-image: var(--sprite-src);
+  background-repeat: no-repeat;
+  background-position: 0% 0%;
+  background-size: calc(var(--sprite-frame-count, 8) * 100%) 100%;
+  image-rendering: auto;
+}
+
+.archimedes-figure--sprite.state-idle .archimedes-sprite {
+  animation: archiSpriteIdle 1.05s steps(var(--sprite-frame-count, 8)) infinite;
+}
+.archimedes-figure--sprite.state-thinking .archimedes-sprite {
+  animation: archiSpriteThink 0.9s steps(var(--sprite-frame-count, 8)) infinite;
+}
+.archimedes-figure--sprite.state-celebrating .archimedes-sprite {
+  animation: archiSpriteCelebrate 0.65s steps(var(--sprite-frame-count, 8)) infinite;
+}
+.archimedes-figure--sprite.state-disappointed .archimedes-sprite {
+  animation: archiSpriteDisappoint 1.15s steps(var(--sprite-frame-count, 8)) infinite;
+}
+
+@keyframes archiSpriteIdle { to { background-position: 100% 0%; } }
+@keyframes archiSpriteThink { to { background-position: 100% 0%; } }
+@keyframes archiSpriteCelebrate { to { background-position: 100% 0%; } }
+@keyframes archiSpriteDisappoint { to { background-position: 100% 0%; } }
+
 /* ── IDLE — gentle float ──────────────────────────────────── */
 .archimedes-figure.state-idle {
   animation: archiFloat 3.6s ease-in-out infinite;
