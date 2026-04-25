@@ -57,7 +57,7 @@ LORE = [
         'content': 'Written around 300 BC, Euclid proved that infinitely many primes exist with a single elegant argument. Assume a finite list. Multiply them all and add 1. The result is either prime, or has a prime factor not in your list — contradiction either way. It remains the first proof taught to every mathematics student on Earth.',
         'author':  '— Euclid, Elements Book IX (c. 300 BC)'
     },
-    {
+   {
         'title':   'Archimedes and the Value of π',
         'content': 'Without a calculator, Archimedes calculated π to stunning accuracy by drawing 96-sided polygons inside and outside a circle. He proved π lies between 3 + 10⁄71 and 3 + 1⁄7. His method — exhaustion by polygons — remained the best technique for computing π for nearly two thousand years.',
         'author':  '— Archimedes of Syracuse (287–212 BC)'

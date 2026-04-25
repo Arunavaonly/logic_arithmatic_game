@@ -81,7 +81,24 @@ body {
   letter-spacing: 0.06em;
 }
 
-.header-controls { display: flex; gap: 0.5rem; }
+.header-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+.header-controls .btn-header-home {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  color: var(--gold);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.header-controls .btn-header-home:hover {
+  border-color: var(--gold);
+  background: rgba(240, 192, 64, 0.12);
+}
 
 .header-controls button {
   background: var(--bg-glass);
@@ -113,6 +130,55 @@ body {
   display: flex; flex-direction: column; align-items: center;
   gap: 1.5rem; width: 100%; max-width: 900px;
   padding: 2rem 1.5rem 4rem;
+}
+
+.home-intro-replaceable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.home-start-game-btn {
+  display: none;
+}
+
+#screen-home.intro-ready-for-start .home-start-game-btn {
+  display: inline-flex;
+}
+
+#screen-home.intro-dismissed .home-intro-replaceable {
+  display: none;
+}
+
+.home-return-msg {
+  margin: -0.5rem 0 0;
+  max-width: 36rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.home-levels-section {
+  width: 100%;
+  transition: opacity 0.55s ease, max-height 0.65s ease, margin 0.45s ease;
+}
+
+#screen-home.intro-pending .home-levels-section {
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.home-archimedes-wrap .speech-bubble {
+  max-width: min(42rem, 94vw);
+  min-height: 4.5rem;
 }
 
 .home-archimedes-wrap {
@@ -305,6 +371,11 @@ body {
 }
 .speech-bubble.visible { opacity: 1; transform: translateY(0); }
 
+#home-speech-text,
+#reward-speech-text {
+  white-space: pre-wrap;
+}
+
 /* ── Question Area ────────────────────────────────────────── */
 .question-area {
   flex: 1;
@@ -450,6 +521,46 @@ body {
   padding: 2rem 1.5rem 4rem;
 }
 
+.reward-archimedes-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 720px;
+}
+
+.reward-archimedes-row.reward-archie-hidden {
+  display: none !important;
+}
+
+.reward-archimedes-row .reward-speech-bubble {
+  flex: 1 1 280px;
+  max-width: min(28rem, 94vw);
+  margin-top: 0;
+  text-align: left;
+}
+
+.reward-detail-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  transition: opacity 0.4s ease, max-height 0.45s ease;
+}
+
+.reward-detail-panel.reward-panel-hidden {
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .reward-title {
   font-family: 'Cinzel', serif;
   font-size: clamp(1.8rem, 5vw, 2.6rem);
@@ -531,6 +642,14 @@ body {
 
 .reward-actions {
   display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+}
+.reward-oracle-btn {
+  background: linear-gradient(135deg, #8b4513, #c47c10);
+  color: #fff8e8;
+  border: 1px solid rgba(240, 192, 64, 0.45);
+}
+.reward-oracle-btn:hover {
+  filter: brightness(1.08);
 }
 .btn-secondary {
   background: var(--bg-glass);

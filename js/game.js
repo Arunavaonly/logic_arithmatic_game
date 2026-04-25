@@ -32,33 +32,86 @@ const Game = (() => {
   }
   function pick10(arr) { return shuffle(arr).slice(0, 10); }
 
+  const SS_UNLOCKED = 'amq_session_unlocked';
+  const SS_COMPLETED = 'amq_session_completed';
+
+  /** True if intro was already dismissed in a prior visit this session (used for welcome blurb only). */
+  let introCompletedBeforeThisLoad = false;
+
+  function readSessionJson(key, fallback) {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw == null || raw === '') return fallback;
+      return JSON.parse(raw);
+    } catch {
+      return fallback;
+    }
+  }
+
+  function writeSessionJson(key, value) {
+    try { sessionStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+  }
+
+  /** Fresh tab = fresh run: only Level I until the player passes levels (sessionStorage). */
+  function initSessionProgress() {
+    if (sessionStorage.getItem(SS_UNLOCKED) == null) {
+      writeSessionJson(SS_UNLOCKED, [1]);
+      writeSessionJson(SS_COMPLETED, []);
+    }
+  }
+
+  function getUnlockedLevelIds() {
+    const u = readSessionJson(SS_UNLOCKED, [1]);
+    return Array.isArray(u) ? u : [1];
+  }
+
+  function unlockLevelId(id) {
+    const set = new Set(getUnlockedLevelIds());
+    set.add(id);
+    writeSessionJson(SS_UNLOCKED, [...set].sort((a, b) => a - b));
+  }
+
+  function markLevelCompletedSession(id) {
+    const set = new Set(readSessionJson(SS_COMPLETED, []));
+    set.add(id);
+    writeSessionJson(SS_COMPLETED, [...set].sort((a, b) => a - b));
+  }
+
   function saveProgress() {
     const lv = GAME_DATA.levels[state.levelIndex];
     const key = `amq_level_${lv.id}`;
     const prev = JSON.parse(localStorage.getItem(key) || '{}');
     const accuracy = Math.round(state.correctCount / state.questions.length * 100);
-    if ((state.score > (prev.score || 0))) {
+    const passed = accuracy >= lv.minScore;
+
+    if (state.score > (prev.score || 0)) {
       localStorage.setItem(key, JSON.stringify({
         score: state.score, accuracy, stars: calcStars(accuracy),
-        unlocked: true
+        unlocked: true,
       }));
     }
-    // Unlock next
-    const nextLv = GAME_DATA.levels[state.levelIndex + 1];
-    if (nextLv && accuracy >= lv.minScore) {
-      const nk = `amq_level_${nextLv.id}`;
-      const nPrev = JSON.parse(localStorage.getItem(nk) || '{}');
-      if (!nPrev.unlocked) localStorage.setItem(nk, JSON.stringify({ unlocked: true, score: 0, accuracy: 0, stars: 0 }));
+
+    if (passed) {
+      markLevelCompletedSession(lv.id);
+      if (lv.id === 1) {
+        unlockLevelId(2);
+        unlockLevelId(5);
+      } else if (lv.id === 2) {
+        unlockLevelId(3);
+      } else if (lv.id === 3) {
+        unlockLevelId(4);
+      } else if (lv.id === 4) {
+        unlockLevelId(5);
+      }
     }
   }
 
   function getLevelSave(levelId) {
     return JSON.parse(localStorage.getItem(`amq_level_${levelId}`) || 'null');
   }
+
   function isUnlocked(levelId) {
-    if (levelId === 1) return true;
-    const s = getLevelSave(levelId);
-    return s && s.unlocked;
+    return getUnlockedLevelIds().includes(levelId);
   }
 
   function calcStars(accuracy) {
@@ -144,10 +197,52 @@ const Game = (() => {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = $(id);
     if (el) { el.classList.add('active'); }
+    syncHeaderHomeNav();
+  }
+
+  /** Header 🏠 Home: hidden during Levels I–IV play; visible on home, reward, fail, Level V, etc. */
+  function syncHeaderHomeNav() {
+    const btn = $('btn-header-home');
+    if (!btn) return;
+    const gameEl = $('screen-game');
+    const inLevelsOneToFour = !!(gameEl && gameEl.classList.contains('active')
+      && state.levelIndex >= 0 && state.levelIndex <= 3);
+    btn.style.display = inLevelsOneToFour ? 'none' : '';
+  }
+
+  function syncHomeIntroFromSession() {
+    const sh = $('screen-home');
+    if (!sh) return;
+    let introDone = false;
+    try { introDone = sessionStorage.getItem('amq_intro_game_done') === '1'; } catch { /* ignore */ }
+    if (introDone) {
+      sh.classList.remove('intro-pending', 'intro-ready-for-start');
+      sh.classList.add('intro-dismissed');
+    }
+  }
+
+  function syncHomeReturnBlurb() {
+    const el = $('home-return-msg');
+    if (!el) return;
+    if (introCompletedBeforeThisLoad) {
+      el.textContent = t('homeWelcomeBack');
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+      el.textContent = '';
+    }
   }
 
   // ── Home screen ────────────────────────────────────────────
   function buildHomeScreen() {
+    syncHomeIntroFromSession();
+    const startBtn = $('btn-start-game');
+    if (startBtn) {
+      const sg = t('startGame');
+      startBtn.textContent = sg;
+      startBtn.setAttribute('aria-label', sg);
+    }
+
     const container = $('level-cards');
     if (!container) return;
     container.innerHTML = '';
@@ -156,32 +251,46 @@ const Game = (() => {
       const locked  = !isUnlocked(lv.id);
       const stars   = save ? save.stars : 0;
       const best    = save ? save.score : 0;
+      const numerals = ['I','II','III','IV','V'];
+      const isRF    = !!lv.isRapidFire;
 
       const card = document.createElement('div');
-      card.className = 'level-card' + (locked ? ' locked' : '');
+      card.className = 'level-card' + (locked ? ' locked' : '') + (isRF ? ' rapid-fire-card' : '');
       card.setAttribute('data-level', i);
       card.innerHTML = `
-        <div class="level-numeral">${['I','II','III','IV'][i]}</div>
+        <div class="level-numeral">${numerals[i]}</div>
         <div class="level-name">${lv.name}</div>
         <div class="level-subtitle">${lv.subtitle}</div>
-        <div class="level-stars">
-          ${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}
-        </div>
+        ${isRF
+          ? `<div class="rf-ai-badge">⚡ ${t('oracleCardBadge')}</div>`
+          : `<div class="level-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>`
+        }
         ${locked
           ? `<div class="level-lock">🔒 ${t('levelLocked')}</div>`
-          : (best > 0 ? `<div class="level-best">${t('bestScore')}: ${best}</div>` : '')
+          : (!isRF && best > 0 ? `<div class="level-best">${t('bestScore')}: ${best}</div>` : '')
         }
-        ${lv.timer ? `<div class="level-timer-badge">⏱ ${lv.timer}${t('seconds')}/Q</div>` : `<div class="level-timer-badge">∞ No Timer</div>`}
+        ${lv.timer && !isRF ? `<div class="level-timer-badge">⏱ ${lv.timer}${t('seconds')}/Q</div>` : ''}
+        ${isRF ? `<div class="level-timer-badge">∞ Infinite · AI-Powered</div>` : ''}
       `;
       if (!locked) {
         card.addEventListener('click', () => startLevel(i));
       }
       container.appendChild(card);
     });
+    syncHeaderHomeNav();
+    syncHomeReturnBlurb();
   }
 
   // ── Start level ────────────────────────────────────────────
   function startLevel(levelIndex) {
+    const lv = GAME_DATA.levels[levelIndex];
+
+    // Level 5 — delegate to RapidFire module
+    if (lv.isRapidFire) {
+      RapidFire.promptContinue();
+      return;
+    }
+
     state.levelIndex      = levelIndex;
     state.questions       = pick10(GAME_DATA.levels[levelIndex].problems);
     state.qIndex          = 0;
@@ -204,8 +313,9 @@ const Game = (() => {
   // ── Game header ────────────────────────────────────────────
   function renderGameHeader() {
     const lv = GAME_DATA.levels[state.levelIndex];
+    const numerals = ['I','II','III','IV','V'];
     const nameEl = $('game-level-name');
-    if (nameEl) nameEl.textContent = `${['I','II','III','IV'][state.levelIndex]}. ${lv.name}`;
+    if (nameEl) nameEl.textContent = `${numerals[state.levelIndex]}. ${lv.name}`;
     updateProgress();
     updateScore();
   }
@@ -410,14 +520,43 @@ const Game = (() => {
     saveProgress();
 
     if (passed) {
+      const lv = GAME_DATA.levels[state.levelIndex];
+      let l1RouteIntro = false;
+      try {
+        l1RouteIntro = (lv.id === 1 && sessionStorage.getItem('amq_intro_l1_routes_done') !== '1');
+      } catch { /* ignore */ }
+
       buildRewardScreen(accuracy);
+      if (l1RouteIntro) {
+        $('reward-detail-panel')?.classList.add('reward-panel-hidden');
+      }
       showScreen('screen-reward');
-      setTimeout(() => {
-        Rewards.startConfetti();
-        Archimedes.celebrate();
-        Audio.levelComplete();
-        Rewards.showReward(calcStars(accuracy));
-      }, 400);
+
+      if (l1RouteIntro) {
+        setTimeout(() => {
+          $('reward-speech-bubble')?.classList.add('visible');
+          Archimedes.speakReward(
+            getLang() === 'en' ? t('postLevel1ChoiceLongEn') : t('postLevel1ChoiceLongBn'),
+            15,
+            () => {
+              try { sessionStorage.setItem('amq_intro_l1_routes_done', '1'); } catch { /* ignore */ }
+              $('reward-archimedes-row')?.classList.add('reward-archie-hidden');
+              $('reward-detail-panel')?.classList.remove('reward-panel-hidden');
+              Rewards.startConfetti();
+              Archimedes.celebrate();
+              Audio.levelComplete();
+              Rewards.showReward(calcStars(accuracy));
+            },
+          );
+        }, 450);
+      } else {
+        setTimeout(() => {
+          Rewards.startConfetti();
+          Archimedes.celebrate();
+          Audio.levelComplete();
+          Rewards.showReward(calcStars(accuracy));
+        }, 400);
+      }
     } else {
       buildFailScreen(accuracy);
       showScreen('screen-fail');
@@ -434,6 +573,12 @@ const Game = (() => {
 
   // ── Reward screen ──────────────────────────────────────────
   function buildRewardScreen(accuracy) {
+    const rt = $('reward-speech-text');
+    if (rt) rt.textContent = '';
+    $('reward-speech-bubble')?.classList.remove('visible');
+    $('reward-archimedes-row')?.classList.remove('reward-archie-hidden');
+    $('reward-detail-panel')?.classList.remove('reward-panel-hidden');
+
     const lv    = GAME_DATA.levels[state.levelIndex];
     const stars = calcStars(accuracy);
     const elapsed = Math.round((Date.now() - state.levelStartTime) / 1000);
@@ -486,26 +631,43 @@ const Game = (() => {
       });
     }
 
-    // Lore
+    // Lore — pick randomly from array of 3
     const loreEl = $('lore-card');
     if (loreEl && lv.lore) {
+      const lores = Array.isArray(lv.lore) ? lv.lore : [lv.lore];
+      const pick  = lores[Math.floor(Math.random() * lores.length)];
       loreEl.innerHTML = `
         <div class="lore-label">${t('loreUnlocked')}</div>
-        <div class="lore-title">${lv.lore.title}</div>
-        <div class="lore-content">${lv.lore.content}</div>
-        <div class="lore-author">${lv.lore.author}</div>
+        <div class="lore-title">${pick.title}</div>
+        <div class="lore-content">${pick.content}</div>
+        <div class="lore-author">${pick.author}</div>
       `;
     }
 
-    // Next level button
-    const nextBtn = $('btn-next-level');
-    const nextLv  = GAME_DATA.levels[state.levelIndex + 1];
-    if (nextBtn) {
-      if (nextLv) {
+    // After each passed level: choose next numbered level OR Oracle (Level V), when both apply.
+    const nextBtn   = $('btn-next-level');
+    const oracleBtn = $('btn-oracle-reward');
+    const nextLv    = GAME_DATA.levels[state.levelIndex + 1];
+    const oracleOpen = isUnlocked(5);
+
+    if (nextBtn && oracleBtn) {
+      if (nextLv && nextLv.isRapidFire) {
+        nextBtn.style.display = 'none';
+        oracleBtn.style.display = oracleOpen ? '' : 'none';
+        oracleBtn.textContent = t('rewardOracleTrial');
+      } else if (nextLv && !nextLv.isRapidFire && oracleOpen) {
         nextBtn.style.display = '';
-        nextBtn.textContent   = t('nextLevel');
+        nextBtn.textContent = t('rewardNextLevel');
+        oracleBtn.style.display = '';
+        oracleBtn.textContent = t('rewardOracleTrial');
+      } else if (nextLv && !nextLv.isRapidFire) {
+        nextBtn.style.display = '';
+        nextBtn.textContent = t('nextLevel');
+        oracleBtn.style.display = 'none';
       } else {
         nextBtn.style.display = 'none';
+        oracleBtn.style.display = oracleOpen ? '' : 'none';
+        oracleBtn.textContent = t('rewardOracleTrial');
       }
     }
   }
@@ -546,33 +708,110 @@ const Game = (() => {
     const inp = $('answer-input');
     if (inp) inp.placeholder = t('placeholder');
 
+    const startBtn = $('btn-start-game');
+    if (startBtn) {
+      const sg = t('startGame');
+      startBtn.textContent = sg;
+      startBtn.setAttribute('aria-label', sg);
+    }
+
+    if (introCompletedBeforeThisLoad) {
+      const hr = $('home-return-msg');
+      if (hr && hr.style.display !== 'none') hr.textContent = t('homeWelcomeBack');
+    }
+
     updateScore();
     updateProgress();
     renderTimer();
   }
 
+  function rebuildHome() { buildHomeScreen(); }
+
   return {
+    rebuildHome,
+    isLevelUnlocked(levelId) {
+      return isUnlocked(levelId);
+    },
+    syncHeaderHomeNav,
     init() {
-      if (!getLevelSave(1)) localStorage.setItem('amq_level_1', JSON.stringify({ unlocked: true, score: 0, accuracy: 0, stars: 0 }));
+      initSessionProgress();
+
+      let introDoneAtBoot = false;
+      try { introDoneAtBoot = sessionStorage.getItem('amq_intro_game_done') === '1'; } catch { /* ignore */ }
+      introCompletedBeforeThisLoad = introDoneAtBoot;
+      const screenHome = $('screen-home');
+      if (introDoneAtBoot) {
+        screenHome?.classList.add('intro-dismissed');
+      } else {
+        screenHome?.classList.add('intro-pending');
+      }
 
       buildHomeScreen();
       showScreen('screen-home');
       Archimedes.init();
 
       setTimeout(() => {
-        const homeText = getLang() === 'en'
-          ? "Welcome to Puzzle Parthenon! I am Archimedes, your game master. Complete the first level to unlock the next. Choose your trial to begin. Click on the hint button to ask for my help"
-          : "পাজল পার্থেননে স্বাগতম! আমি আর্কিমিডিস, তোমার গেম মাস্টার। পরবর্তী স্তর খুলতে প্রথম স্তরটি শেষ করো। তোমার পরীক্ষা বেছে নাও। 'hint' বাটনে ক্লিক করলে আমি তোমাকে সাহায্য করবো।";
-        Archimedes.speakHome(homeText, 40);
-      }, 500);
+        if (!introDoneAtBoot) {
+          Archimedes.speakHome(
+            getLang() === 'en' ? t('introGameLongEn') : t('introGameLongBn'),
+            14,
+            () => { screenHome?.classList.add('intro-ready-for-start'); },
+          );
+        }
+      }, 600);
+
+      $('btn-start-game')?.addEventListener('click', () => {
+        Archimedes.silenceHome();
+        try { sessionStorage.setItem('amq_intro_game_done', '1'); } catch { /* ignore */ }
+        screenHome?.classList.remove('intro-pending', 'intro-ready-for-start');
+        screenHome?.classList.add('intro-dismissed');
+        buildHomeScreen();
+      });
 
       $('answer-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') submitAnswer(); });
       $('btn-submit')  ?.addEventListener('click',   () => submitAnswer());
       $('btn-hint')    ?.addEventListener('click',   () => useHint());
       $('btn-skip')    ?.addEventListener('click',   () => skipQuestion());
+      $('btn-header-home')?.addEventListener('click', () => {
+        stopTimer();
+        const m = $('rf-continue-modal');
+        if (m) m.style.display = 'none';
+        showScreen('screen-home');
+        buildHomeScreen();
+      });
       $('btn-home')    ?.addEventListener('click',   () => { stopTimer(); showScreen('screen-home'); buildHomeScreen(); });
-      $('btn-next-level')?.addEventListener('click', () => { Rewards.stopConfetti(); startLevel(state.levelIndex + 1); });
+      $('btn-next-level')?.addEventListener('click', () => {
+        Rewards.stopConfetti();
+        const nextIdx = state.levelIndex + 1;
+        const nextLv = GAME_DATA.levels[nextIdx];
+        if (nextLv?.isRapidFire) {
+          showScreen('screen-home');
+          buildHomeScreen();
+          RapidFire.promptContinue();
+        } else {
+          startLevel(nextIdx);
+        }
+      });
+      $('btn-oracle-reward')?.addEventListener('click', () => {
+        Rewards.stopConfetti();
+        showScreen('screen-home');
+        buildHomeScreen();
+        RapidFire.promptContinue();
+      });
       $('btn-home-reward')?.addEventListener('click', () => { Rewards.stopConfetti(); showScreen('screen-home'); buildHomeScreen(); });
+
+      // Rapid Fire modal buttons
+      $('rf-modal-accept') ?.addEventListener('click', () => RapidFire.beginRound());
+      $('rf-modal-decline')?.addEventListener('click', () => {
+        const m = $('rf-continue-modal');
+        if (m) m.style.display = 'none';
+        showScreen('screen-home');
+        buildHomeScreen();
+      });
+      $('rf-btn-home')     ?.addEventListener('click', () => { showScreen('screen-home'); buildHomeScreen(); });
+      $('rf-btn-hint')     ?.addEventListener('click', () => RapidFire.showNextHint());
+      $('rf-btn-submit')   ?.addEventListener('click', () => RapidFire.submitAnswer());
+      $('rf-answer-input') ?.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') RapidFire.submitAnswer(); });
 
       const sc = $('streak-canvas');
       if (sc) StreakViz.init(sc);

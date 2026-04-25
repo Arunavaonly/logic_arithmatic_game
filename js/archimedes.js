@@ -62,12 +62,21 @@ const Archimedes = (() => {
 
     idle() { setCharState('idle'); },
 
-    speakHome(text, speed = 40) {
+    speakHome(text, speed = 40, onDone) {
       const bubble = document.getElementById('home-speech-bubble');
       const textEl  = document.getElementById('home-speech-text');
-      if (!bubble || !textEl) return;
+      if (!bubble || !textEl) { if (onDone) onDone(); return; }
       bubble.classList.add('visible');
-      typewrite(textEl, text, speed);
+      typewrite(textEl, text, speed, onDone);
+    },
+
+    /** Reward screen (e.g. after Level I): second bubble beside reward Archimedes. */
+    speakReward(text, speed = 22, onDone) {
+      const bubble = document.getElementById('reward-speech-bubble');
+      const textEl = document.getElementById('reward-speech-text');
+      if (!bubble || !textEl) { if (onDone) onDone(); return; }
+      bubble.classList.add('visible');
+      typewrite(textEl, text, speed, onDone);
     },
 
     greet(levelName) {
@@ -103,6 +112,15 @@ const Archimedes = (() => {
       if (bubble) bubble.classList.remove('visible');
       if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
       setCharState('idle');
+    },
+
+    /** Stop home-screen typewriter and hide the home bubble (e.g. when user taps Start game). */
+    silenceHome() {
+      const bubble = document.getElementById('home-speech-bubble');
+      if (bubble) bubble.classList.remove('visible');
+      const textEl = document.getElementById('home-speech-text');
+      if (textEl) textEl.textContent = '';
+      if (typeTimer) { clearInterval(typeTimer); typeTimer = null; }
     }
   };
 })();

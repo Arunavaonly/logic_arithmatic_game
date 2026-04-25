@@ -282,11 +282,23 @@ const GAME_DATA = {
           ]
         }
       ],
-      "lore": {
-        "title": "The Birth of Zero",
-        "content": "In 7th-century India, mathematician Brahmagupta defined zero as the result of subtracting a number from itself. The concept of śūnya — nothingness as a quantity — was revolutionary. Before this, no civilisation could mathematically represent the absence of something. This single idea made algebra, calculus, and all of modern computing possible.",
-        "author": "— Brahmagupta, Brahmasphutasiddhānta (628 AD)"
-      }
+      "lore": [
+        {
+          "title": "The Birth of Zero",
+          "content": "In 7th-century India, mathematician Brahmagupta defined zero as the result of subtracting a number from itself. The concept of śūnya — nothingness as a quantity — was revolutionary. Before this, no civilisation could mathematically represent the absence of something. This single idea made algebra, calculus, and all of modern computing possible.",
+          "author": "— Brahmagupta, Brahmasphutasiddhānta (628 AD)"
+        },
+        {
+          "title": "Pythagoras and the Harmony of Numbers",
+          "content": "Pythagoras discovered that musical harmony is pure mathematics. When a string is halved, the note rises by one octave — a ratio of 2:1. A ratio of 3:2 gives a perfect fifth, and 4:3 a perfect fourth. He believed the entire universe operated on such ratios, calling it the Harmony of the Spheres. He was the first to propose that mathematics is the language of reality.",
+          "author": "— Pythagoras of Samos (c. 570–495 BC)"
+        },
+        {
+          "title": "Al-Khwarizmi and the First Algorithm",
+          "content": "In 9th-century Baghdad, Muhammad ibn Musa al-Khwarizmi wrote Kitab al-mukhtasar fi hisab al-jabr wal-muqabala — The Compendious Book on Calculation by Completion and Balancing. The word algebra comes from al-jabr in the title. His name, latinised as Algoritmi, gave us the word algorithm. Every time a computer follows a step-by-step procedure, it performs an act al-Khwarizmi invented.",
+          "author": "— Al-Khwarizmi, House of Wisdom, Baghdad (c. 820 AD)"
+        }
+      ]
     },
     {
       "id": 2,
@@ -570,11 +582,23 @@ const GAME_DATA = {
           ]
         }
       ],
-      "lore": {
-        "title": "Euclid's Infinite Primes",
-        "content": "Written around 300 BC, Euclid proved that infinitely many primes exist with a single elegant argument. Assume a finite list. Multiply them all and add 1. The result is either prime, or has a prime factor not in your list — contradiction either way. It remains the first proof taught to every mathematics student on Earth.",
-        "author": "— Euclid, Elements Book IX (c. 300 BC)"
-      }
+      "lore": [
+        {
+          "title": "Euclid's Infinite Primes",
+          "content": "Written around 300 BC, Euclid proved that infinitely many primes exist with a single elegant argument. Assume a finite list. Multiply them all and add 1. The result is either prime, or has a prime factor not in your list — contradiction either way. It remains the first proof taught to every mathematics student on Earth.",
+          "author": "— Euclid, Elements Book IX (c. 300 BC)"
+        },
+        {
+          "title": "The Sieve of Eratosthenes",
+          "content": "Around 240 BC, the Greek librarian Eratosthenes devised a method to find all prime numbers up to any limit — simply cross out every multiple of each prime in sequence. What remains are primes. He also used geometry and shadows to calculate the circumference of the Earth, achieving a result accurate to within 1% — without leaving Egypt, without a satellite, and without a calculator.",
+          "author": "— Eratosthenes of Cyrene (c. 276–194 BC)"
+        },
+        {
+          "title": "Pascal's Triangle and Hidden Patterns",
+          "content": "Blaise Pascal described his famous triangle in 1653, but it had been known in China for 500 years before him. Each number is the sum of the two above it. Hidden within are the Fibonacci sequence (in the diagonals), powers of 2 (row sums), the coefficients of binomial expansions, and fractal patterns that emerge when you shade the odd numbers. A single triangle encodes an entire library of mathematics.",
+          "author": "— Blaise Pascal, Traité du triangle arithmétique (1653)"
+        }
+      ]
     },
     {
       "id": 3,
@@ -857,11 +881,23 @@ const GAME_DATA = {
           ]
         }
       ],
-      "lore": {
-        "title": "Archimedes and the Value of π",
-        "content": "Without a calculator, Archimedes calculated π to stunning accuracy by drawing 96-sided polygons inside and outside a circle. He proved π lies between 3 + 10⁄71 and 3 + 1⁄7. His method — exhaustion by polygons — remained the best technique for computing π for nearly two thousand years.",
-        "author": "— Archimedes of Syracuse (287–212 BC)"
-      }
+      "lore": [
+        {
+          "title": "Archimedes and the Value of π",
+          "content": "Without a calculator, Archimedes calculated π to stunning accuracy by drawing 96-sided polygons inside and outside a circle. He proved π lies between 3 + 10⁄71 and 3 + 1⁄7. His method — exhaustion by polygons — remained the best technique for computing π for nearly two thousand years.",
+          "author": "— Archimedes of Syracuse (287–212 BC)"
+        },
+        {
+          "title": "Fibonacci and the Golden Ratio",
+          "content": "In 1202, Leonardo Fibonacci introduced Europe to the Hindu-Arabic numeral system through his Liber Abaci. He posed a puzzle about breeding rabbits whose solution produced the sequence 1, 1, 2, 3, 5, 8, 13… Each term divided by the previous approaches the Golden Ratio (φ ≈ 1.618). This ratio appears in nautilus shells, flower petals, pine cones, and the proportions of the Parthenon itself — suggesting mathematics is woven into the fabric of nature.",
+          "author": "— Leonardo Fibonacci, Liber Abaci (1202)"
+        },
+        {
+          "title": "Newton vs. Leibniz: The Calculus War",
+          "content": "Isaac Newton invented calculus in 1666 but kept it secret for years. Gottfried Wilhelm Leibniz independently invented it in 1675 and published first. A bitter international dispute erupted — England vs. the Continent — over who deserved credit. Today both are recognised as co-inventors. Newton's notation was clumsy; Leibniz's elegant dy/dx notation is what every student uses today, proving that how you express an idea matters as much as the idea itself.",
+          "author": "— Newton (1666) & Leibniz (1675)"
+        }
+      ]
     },
     {
       "id": 4,
@@ -1144,11 +1180,51 @@ const GAME_DATA = {
           ]
         }
       ],
-      "lore": {
-        "title": "The Child Who Summed to 5050",
-        "content": "At age 10, Carl Friedrich Gauss was told to sum every integer from 1 to 100 as a classroom punishment. Within seconds he wrote 5050. He realised that pairs from each end (1+100, 2+99 …) each equal 101, and there are exactly 50 such pairs. The formula n(n+1)⁄2 — which you just used — was discovered by a bored schoolboy who became one of history's greatest mathematicians.",
-        "author": "— Carl Friedrich Gauss (1777–1855)"
-      }
+      "lore": [
+        {
+          "title": "The Child Who Summed to 5050",
+          "content": "At age 10, Carl Friedrich Gauss was told to sum every integer from 1 to 100 as a classroom punishment. Within seconds he wrote 5050. He realised that pairs from each end (1+100, 2+99 …) each equal 101, and there are exactly 50 such pairs. The formula n(n+1)⁄2 — which you just used — was discovered by a bored schoolboy who became one of history's greatest mathematicians.",
+          "author": "— Carl Friedrich Gauss (1777–1855)"
+        },
+        {
+          "title": "Fermat's Last Theorem: 358 Years",
+          "content": "In 1637, Pierre de Fermat wrote in the margin of his book: 'I have discovered a truly remarkable proof which this margin is too narrow to contain.' His theorem — that no three positive integers satisfy aⁿ + bⁿ = cⁿ for n > 2 — remained unproven for 358 years. In 1995, Andrew Wiles finally proved it after seven years of secret work. When he presented the proof, he wept. It remains one of the most dramatic moments in the history of mathematics.",
+          "author": "— Pierre de Fermat (1637) / Andrew Wiles (1995)"
+        },
+        {
+          "title": "Hilbert's Hotel: When Infinity Checks In",
+          "content": "Imagine a hotel with infinitely many rooms, all occupied. A new guest arrives. The manager simply moves every guest from room n to room n+1 — freeing room 1. Now an infinite bus of new guests arrives. The manager moves each existing guest from room n to room 2n (even rooms), freeing all odd rooms — infinitely many — for the new arrivals. David Hilbert used this paradox to show that infinity behaves by completely different rules to ordinary arithmetic.",
+          "author": "— David Hilbert (1924)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "The Oracle's Trial",
+      "subtitle": "One Strike. You're Out.",
+      "timer": 30,
+      "badge": "Oracle of Olympus",
+      "badgeIcon": "⚡",
+      "minScore": 0,
+      "isRapidFire": true,
+      "problems": [],
+      "lore": [
+        {
+          "title": "The Oracle of Delphi",
+          "content": "The Oracle of Delphi spoke not in answers, but in puzzles — forcing seekers to reason their way to truth. Even Socrates was told by the Oracle that he was the wisest man, because he alone knew that he knew nothing. True wisdom, the Greeks believed, lies not in memorised facts but in the ability to reason under pressure.",
+          "author": "— Pythia, Oracle of Delphi (c. 8th century BC)"
+        },
+        {
+          "title": "Gödel's Incompleteness: Truth Beyond Proof",
+          "content": "In 1931, Kurt Gödel shook mathematics to its foundations. He proved that in any consistent mathematical system powerful enough to describe arithmetic, there exist true statements that can never be proved within that system. Mathematics contains truths it cannot reach. Bertrand Russell, who had spent a decade building a complete logical foundation for all of mathematics, reportedly said it felt like being told the sun would not rise tomorrow.",
+          "author": "— Kurt Gödel, Incompleteness Theorems (1931)"
+        },
+        {
+          "title": "The Halting Problem: Limits of Computation",
+          "content": "In 1936, Alan Turing proved that no algorithm can exist which determines, for every possible program and input, whether that program will ever finish running — or loop forever. This is the Halting Problem. It means there are questions that are logically unanswerable by any computer, no matter how powerful. Turing proved the limits of thought itself before computers were even built — using only pure logic and imagination.",
+          "author": "— Alan Turing, On Computable Numbers (1936)"
+        }
+      ]
     }
   ]
 };

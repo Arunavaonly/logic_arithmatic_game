@@ -5,6 +5,9 @@
     'images/archimedes-sprite.png',
     'archimedes-sprite.png'
   ];
+  const SPRITE_OPT_IN =
+    document.documentElement?.dataset?.archimedesSprite === '1' ||
+    document.documentElement?.dataset?.archimedesSprite === 'true';
 
   const DEFAULT_SPRITE = {
     // Expected layout: a single horizontal strip of frames
@@ -70,6 +73,8 @@
       el.textContent = '';
       el.appendChild(makeStaticFigure());
     });
+
+    if (!SPRITE_OPT_IN) return;
 
     (async () => {
       for (const candidate of ARCHIMEDES_SPRITE_SRC_CANDIDATES) {

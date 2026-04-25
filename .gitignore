@@ -1,0 +1,16 @@
+# Local dev secrets — never commit these
+.env
+config.js
+
+# Cloudflare Worker local secrets
+groq-proxy/.dev.vars
+
+# Node modules
+node_modules/
+groq-proxy/node_modules/
+
+# Build outputs
+dist/
+.wrangler/
+groq-proxy/.wrangler/
+groq-proxy/dist/

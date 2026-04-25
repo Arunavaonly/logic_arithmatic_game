@@ -18,6 +18,7 @@
   <!-- Game CSS -->
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/archimedes.css" />
+  <link rel="stylesheet" href="css/rapidfire.css" />
 </head>
 <body>
 
@@ -30,6 +31,7 @@
 <header class="app-header" role="banner">
   <div class="brand">🏛️ PUZZLE PARTHENON</div>
   <div class="header-controls">
+    <button id="btn-header-home" class="btn-header-home" type="button" aria-label="Home" title="Home" style="display:none">🏠 Home</button>
     <button id="btn-sound" aria-label="Toggle sound" title="Sound">🔊</button>
     <button id="btn-lang"  aria-label="Toggle language" title="Language">বাং</button>
     <button id="btn-theme" aria-label="Toggle dark mode" title="Theme">☀️</button>
@@ -42,20 +44,25 @@
   <canvas id="starfield" aria-hidden="true"></canvas>
 
   <div class="home-content">
-    <!-- Archimedes on home -->
-    <div class="home-archimedes-wrap">
-      <!-- Figure inserted by JS -->
-      <div id="archimedes-home-fig"></div>
-      <div class="speech-bubble" id="home-speech-bubble" role="status" aria-live="polite">
-        <span id="home-speech-text"></span>
+    <!-- First visit: Archimedes + intro + Start game; then hidden so levels sit in this slot -->
+    <div id="home-intro-replaceable" class="home-intro-replaceable">
+      <div class="home-archimedes-wrap">
+        <div id="archimedes-home-fig"></div>
+        <div class="speech-bubble" id="home-speech-bubble" role="status" aria-live="polite">
+          <span id="home-speech-text"></span>
+        </div>
       </div>
+      <button type="button" id="btn-start-game" class="btn-primary home-start-game-btn"></button>
     </div>
 
     <h1 class="game-title">Puzzle Parthenon</h1>
     <p class="game-subtitle">A Journey of Intellectual Mastery</p>
+    <p id="home-return-msg" class="home-return-msg" style="display: none" role="status"></p>
 
-    <div class="level-cards" id="level-cards" role="list" aria-label="Level selection">
-      <!-- Built by game.js -->
+    <div id="home-levels-section" class="home-levels-section">
+      <div class="level-cards" id="level-cards" role="list" aria-label="Level selection">
+        <!-- Built by game.js -->
+      </div>
     </div>
   </div>
 </div>
@@ -134,27 +141,34 @@
   <canvas id="confetti-canvas" aria-hidden="true"></canvas>
 
   <div class="reward-content">
-    <!-- Archimedes celebrating -->
-    <div id="archimedes-reward-fig"></div>
+    <div class="reward-archimedes-row" id="reward-archimedes-row">
+      <div id="archimedes-reward-fig"></div>
+      <div class="speech-bubble reward-speech-bubble" id="reward-speech-bubble" role="status" aria-live="polite">
+        <span id="reward-speech-text"></span>
+      </div>
+    </div>
 
-    <h2 class="reward-title" aria-live="assertive">Level Complete! 🎉</h2>
+    <div id="reward-detail-panel" class="reward-detail-panel">
+      <h2 class="reward-title" aria-live="assertive">Level Complete! 🎉</h2>
 
-    <!-- Badge -->
-    <div class="badge-display" id="badge-display" role="img" aria-label="Reward badge"></div>
+      <!-- Badge -->
+      <div class="badge-display" id="badge-display" role="img" aria-label="Reward badge"></div>
 
-    <!-- Score card -->
-    <div class="score-card" id="score-card" aria-label="Score summary"></div>
+      <!-- Score card -->
+      <div class="score-card" id="score-card" aria-label="Score summary"></div>
 
-    <!-- Category breakdown -->
-    <div class="category-breakdown" id="category-breakdown" aria-label="Performance by category"></div>
+      <!-- Category breakdown -->
+      <div class="category-breakdown" id="category-breakdown" aria-label="Performance by category"></div>
 
-    <!-- Lore unlock -->
-    <div class="lore-card" id="lore-card" aria-label="Historical lore"></div>
+      <!-- Lore unlock -->
+      <div class="lore-card" id="lore-card" aria-label="Historical lore"></div>
 
-    <!-- Actions -->
-    <div class="reward-actions">
-      <button id="btn-next-level" class="btn-primary">Next Level →</button>
-      <button id="btn-home-reward" class="btn-secondary">🏠 Home</button>
+      <!-- Actions -->
+      <div class="reward-actions">
+        <button id="btn-next-level" class="btn-primary">Next Level →</button>
+        <button id="btn-oracle-reward" class="btn-primary reward-oracle-btn" type="button" style="display:none">⚡ The Oracle's Trial</button>
+        <button id="btn-home-reward" class="btn-secondary">🏠 Home</button>
+      </div>
     </div>
   </div>
 </div>
@@ -166,13 +180,120 @@
 </div>
 
 
+<!-- ══════════════════════ SCREEN: RAPID FIRE (Level 5) ═══════════════════ -->
+<div id="screen-rapidfire" class="screen" role="main" aria-label="The Oracle's Trial — Rapid Fire Round">
+
+  <!-- Header -->
+  <div class="rf-header" role="toolbar">
+    <button id="rf-btn-home" class="btn-back" aria-label="Return to home">🏠</button>
+    <div class="rf-title-area">
+      <div class="rf-level-name">⚡ THE ORACLE'S TRIAL</div>
+      <div class="rf-header-stats">
+        <span id="rf-questions-count">0 Survived</span>
+        <span id="rf-score-display">Score: 0</span>
+      </div>
+    </div>
+    <div id="rf-timer" class="rf-timer" aria-live="assertive">30s</div>
+  </div>
+
+  <div class="rf-body">
+
+    <!-- Archimedes sidebar -->
+    <aside class="rf-sidebar" aria-label="Archimedes guide">
+      <div id="archimedes-rf-fig"></div>
+      <div class="speech-bubble" id="rf-speech-bubble" role="status" aria-live="polite">
+        <span id="rf-speech-text"></span>
+      </div>
+    </aside>
+
+    <!-- Question area -->
+    <main class="rf-question-area">
+
+      <!-- Loading state -->
+      <div class="rf-loading" id="rf-loading" aria-live="polite">
+        <div class="rf-spinner"></div>
+        <p>Archimedes is preparing your challenge…</p>
+      </div>
+
+      <!-- Question card -->
+      <div class="rf-question-card" id="rf-question-card" style="display:none" role="region" aria-label="Current question">
+        <div class="rf-type-badge" id="rf-type-badge">Logic</div>
+
+        <div class="rf-question-text" id="rf-question-text" aria-live="polite"></div>
+
+        <!-- Auto-revealed hints -->
+        <div class="rf-hints" aria-label="Progressive hints">
+          <div class="rf-hint" id="rf-hint1" role="note" aria-label="First hint"></div>
+          <div class="rf-hint" id="rf-hint2" role="note" aria-label="Second hint"></div>
+        </div>
+
+        <!-- Answer input -->
+        <div class="rf-answer-section">
+          <div class="rf-action-bar">
+            <button id="rf-btn-hint" class="btn-hint" aria-label="Get a hint">💡 Hint</button>
+          </div>
+          <textarea
+            id="rf-answer-input"
+            placeholder="Explain your reasoning here…"
+            aria-label="Your answer"
+            rows="4"
+          ></textarea>
+          <button id="rf-btn-submit" class="btn-primary">Submit Answer</button>
+        </div>
+
+        <div class="rf-feedback" id="rf-feedback" role="status" aria-live="assertive"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════ SCREEN: ELIMINATED ══════════════════════════ -->
+<div id="screen-eliminated" class="screen" role="main" aria-label="Elimination screen" aria-live="assertive">
+  <div class="eliminated-content" id="eliminated-content"></div>
+</div>
+
+
+<!-- ══════════════════ MODAL: Continue to Level 5? ═══════════════════════════ -->
+<div id="rf-continue-modal" class="rf-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rf-modal-title" style="display:none">
+  <div class="rf-modal-box">
+    <div class="rf-modal-bolt">⚡</div>
+    <h2 class="rf-modal-title" id="rf-modal-title">The Oracle's Trial</h2>
+    <p class="rf-modal-subtitle">Level V — Infinite Rapid Fire</p>
+
+    <div class="rf-modal-warning">
+      ⚠️ One wrong answer and you are <strong>permanently eliminated</strong> from this round.
+    </div>
+
+    <ul class="rf-modal-rules">
+      <li>🔮 Questions generated live by AI — each one unique</li>
+      <li>⏱ 30 seconds per question (same as Level 4)</li>
+      <li>💡 Two hints auto-reveal at 15s and 8s remaining</li>
+      <li>✍️ Write your reasoning — not just the answer</li>
+      <li>∞ No limit — survive as long as you can</li>
+    </ul>
+
+    <div class="rf-modal-actions">
+      <button id="rf-modal-accept" class="btn-primary">⚡ Accept the Challenge</button>
+      <button id="rf-modal-decline" class="btn-secondary">🏠 Return Home</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ── Scripts ──────────────────────────────────────────────────────────── -->
+<!-- config.js sets window.GROQ_PROXY_URL for local dev — gitignored, safe to be missing -->
+<script src="config.js" onerror="console.info('config.js not found — using default proxy URL')"></script>
+<script src="js/proxy-url-pages.js"></script>
+
 <script src="js/data.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/streak.js"></script>
 <script src="js/archimedes.js"></script>
 <script src="js/rewards.js"></script>
+<script src="js/rapidfire.js"></script>
 
 <!-- Archimedes figure (injects PNG-based <img>) -->
 <script src="js/archimedes-svg.js"></script>
