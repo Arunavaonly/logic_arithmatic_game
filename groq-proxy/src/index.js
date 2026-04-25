@@ -88,6 +88,20 @@ export default {
       // Strip our internal 'type' field, forward rest to Groq
       const { type: _type, ...groqPayload } = body;
 
+      const payloadJson = JSON.stringify(groqPayload);
+      if (!groqPayload.model || !Array.isArray(groqPayload.messages)) {
+        return withCors(
+          {
+            error: 'Invalid Groq payload (need model + messages[])',
+            keys: Object.keys(groqPayload),
+          },
+          400,
+        );
+      }
+
+      // Byte body + explicit Content-Length: some APIs reject chunked POST from edge runtimes.
+      const payloadBytes = new TextEncoder().encode(payloadJson);
+
       // Forward to Groq
       let groqRes;
       try {
@@ -97,16 +111,18 @@ export default {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'PuzzleParthenon-GroqProxy/1.0 (Cloudflare Worker)',
+            // Prefer uncompressed responses (avoids rare empty-body decompress quirks)
+            'Accept-Encoding': 'identity',
           },
-          body: JSON.stringify(groqPayload),
+          body: payloadBytes,
         });
       } catch (err) {
         return withCors({ error: 'Failed to reach Groq API', detail: err.message }, 502);
       }
 
-      const rawText = await groqRes.text();
-      if (!rawText || !rawText.trim()) {
+      const ab = await groqRes.arrayBuffer();
+      const rawText = new TextDecoder('utf-8').decode(ab);
+      if (!rawText.trim()) {
         const reqId =
           groqRes.headers.get('x-request-id')
           || groqRes.headers.get('cf-ray')
@@ -116,7 +132,10 @@ export default {
           {
             error: 'Empty body from Groq (unusual for this API)',
             httpStatus: groqRes.status,
+            groqBodyBytes: ab.byteLength,
             groqRequestId: reqId || undefined,
+            groqContentType: groqRes.headers.get('content-type') || undefined,
+            groqContentEncoding: groqRes.headers.get('content-encoding') || undefined,
             hint:
               'Re-save the Worker secret without spaces or line breaks after the key: npx wrangler secret put GROQ_API_KEY',
           },
