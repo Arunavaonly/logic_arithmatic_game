@@ -1,0 +1,7 @@
+name = "groq-proxy"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Non-secret config vars go here (not API keys)
+ALLOWED_ORIGINS = "http://localhost,http://127.0.0.1,https://localhost"

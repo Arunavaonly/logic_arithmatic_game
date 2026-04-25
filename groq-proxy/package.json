@@ -1,0 +1,12 @@
+{
+  "name": "groq-proxy",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker proxy for Groq API — keeps API key server-side",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.85.0"
+  }
+}
