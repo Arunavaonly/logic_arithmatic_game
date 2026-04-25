@@ -77,8 +77,11 @@ export default {
         return withCors({ error: 'Expected a JSON object body' }, 400);
       }
 
-      // Check API key is configured
-      if (!env.GROQ_API_KEY) {
+      // Trim: wrangler secret often stores a trailing newline; local .env loaders usually trim.
+      const apiKey = String(env.GROQ_API_KEY || '')
+        .replace(/^\uFEFF/, '')
+        .trim();
+      if (!apiKey) {
         return withCors({ error: 'GROQ_API_KEY not configured on worker' }, 500);
       }
 
@@ -91,8 +94,10 @@ export default {
         groqRes = await fetch(GROQ_API_URL, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'PuzzleParthenon-GroqProxy/1.0 (Cloudflare Worker)',
           },
           body: JSON.stringify(groqPayload),
         });
@@ -102,8 +107,19 @@ export default {
 
       const rawText = await groqRes.text();
       if (!rawText || !rawText.trim()) {
+        const reqId =
+          groqRes.headers.get('x-request-id')
+          || groqRes.headers.get('cf-ray')
+          || groqRes.headers.get('x-groq-request-id')
+          || '';
         return withCors(
-          { error: 'Empty response from Groq', httpStatus: groqRes.status },
+          {
+            error: 'Empty body from Groq (unusual for this API)',
+            httpStatus: groqRes.status,
+            groqRequestId: reqId || undefined,
+            hint:
+              'Re-save the Worker secret without spaces or line breaks after the key: npx wrangler secret put GROQ_API_KEY',
+          },
           groqRes.ok ? 502 : groqRes.status,
         );
       }
