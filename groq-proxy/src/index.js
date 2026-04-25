@@ -43,73 +43,87 @@ function isAllowed(origin) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '';
-
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
-    }
-
-    // Only allow POST
-    if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
+    const withCors = (body, status) =>
+      new Response(typeof body === 'string' ? body : JSON.stringify(body), {
+        status,
         headers: corsHeaders(origin),
       });
-    }
 
-    // Check origin
-    if (!isAllowed(origin)) {
-      return new Response(JSON.stringify({ error: 'Forbidden' }), {
-        status: 403,
-        headers: corsHeaders(origin),
-      });
-    }
-
-    // Parse body
-    let body;
     try {
-      body = await request.json();
-    } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-        status: 400,
-        headers: corsHeaders(origin),
-      });
-    }
+      // Handle CORS preflight
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      }
 
-    // Check API key is configured
-    if (!env.GROQ_API_KEY) {
-      return new Response(JSON.stringify({ error: 'GROQ_API_KEY not configured on worker' }), {
-        status: 500,
-        headers: corsHeaders(origin),
-      });
-    }
+      // Only allow POST
+      if (request.method !== 'POST') {
+        return withCors({ error: 'Method not allowed' }, 405);
+      }
 
-    // Strip our internal 'type' field, forward rest to Groq
-    const { type, ...groqPayload } = body;
+      // Check origin
+      if (!isAllowed(origin)) {
+        return withCors({ error: 'Forbidden' }, 403);
+      }
 
-    // Forward to Groq
-    let groqRes;
-    try {
-      groqRes = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${env.GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(groqPayload),
-      });
+      // Parse body
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return withCors({ error: 'Invalid JSON body' }, 400);
+      }
+
+      if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        return withCors({ error: 'Expected a JSON object body' }, 400);
+      }
+
+      // Check API key is configured
+      if (!env.GROQ_API_KEY) {
+        return withCors({ error: 'GROQ_API_KEY not configured on worker' }, 500);
+      }
+
+      // Strip our internal 'type' field, forward rest to Groq
+      const { type: _type, ...groqPayload } = body;
+
+      // Forward to Groq
+      let groqRes;
+      try {
+        groqRes = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(groqPayload),
+        });
+      } catch (err) {
+        return withCors({ error: 'Failed to reach Groq API', detail: err.message }, 502);
+      }
+
+      const rawText = await groqRes.text();
+      if (!rawText || !rawText.trim()) {
+        return withCors(
+          { error: 'Empty response from Groq', httpStatus: groqRes.status },
+          groqRes.ok ? 502 : groqRes.status,
+        );
+      }
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        return withCors(
+          {
+            error: 'Groq returned non-JSON',
+            status: groqRes.status,
+            snippet: rawText.slice(0, 300),
+          },
+          502,
+        );
+      }
+
+      return withCors(data, groqRes.status);
     } catch (err) {
-      return new Response(JSON.stringify({ error: 'Failed to reach Groq API', detail: err.message }), {
-        status: 502,
-        headers: corsHeaders(origin),
-      });
+      return withCors({ error: 'Worker error', detail: err.message }, 500);
     }
-
-    const data = await groqRes.json();
-
-    return new Response(JSON.stringify(data), {
-      status: groqRes.status,
-      headers: corsHeaders(origin),
-    });
   },
 };
