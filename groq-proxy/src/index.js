@@ -79,7 +79,9 @@ export default {
 
       // Trim: wrangler secret often stores a trailing newline; local .env loaders usually trim.
       const apiKey = String(env.GROQ_API_KEY || '')
-        .replace(/^\uFEFF/, '')
+        .replace(/^[\uFEFF\u200B\u200C\u200D\uFEFF]/, '')
+        .replace(/[\uFEFF\u200B\u200C\u200D\uFEFF]$/, '')
+        .replace(/[\r\n]+/g, '')
         .trim();
       if (!apiKey) {
         return withCors({ error: 'GROQ_API_KEY not configured on worker' }, 500);
@@ -88,7 +90,6 @@ export default {
       // Strip our internal 'type' field, forward rest to Groq
       const { type: _type, ...groqPayload } = body;
 
-      const payloadJson = JSON.stringify(groqPayload);
       if (!groqPayload.model || !Array.isArray(groqPayload.messages)) {
         return withCors(
           {
@@ -99,8 +100,10 @@ export default {
         );
       }
 
-      // Byte body + explicit Content-Length: some APIs reject chunked POST from edge runtimes.
-      const payloadBytes = new TextEncoder().encode(payloadJson);
+      // Use a plain string body — Cloudflare Workers handle Content-Length
+      // automatically for strings, avoiding chunked-encoding issues that
+      // can cause empty responses from some APIs.
+      const payloadJson = JSON.stringify(groqPayload);
 
       // Forward to Groq
       let groqRes;
@@ -109,39 +112,50 @@ export default {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
             'Accept': 'application/json',
-            // Prefer uncompressed responses (avoids rare empty-body decompress quirks)
-            'Accept-Encoding': 'identity',
+            // Do NOT set Accept-Encoding — let the Workers runtime handle
+            // decompression transparently. Setting 'identity' can cause
+            // empty-body issues when Groq responds with gzip regardless.
           },
-          body: payloadBytes,
+          // Pass string directly — Workers auto-set Content-Length for strings
+          body: payloadJson,
         });
       } catch (err) {
         return withCors({ error: 'Failed to reach Groq API', detail: err.message }, 502);
       }
 
-      const ab = await groqRes.arrayBuffer();
-      const rawText = new TextDecoder('utf-8').decode(ab);
-      if (!rawText.trim()) {
+      // Read response — use .text() which handles decompression reliably
+      // in the Workers runtime (avoids arrayBuffer decompression edge cases)
+      const rawText = await groqRes.text();
+
+      if (!rawText || !rawText.trim()) {
         const reqId =
           groqRes.headers.get('x-request-id')
           || groqRes.headers.get('cf-ray')
           || groqRes.headers.get('x-groq-request-id')
           || '';
+
+        // Collect all Groq response headers for debugging
+        const groqHeaders = {};
+        groqRes.headers.forEach((val, key) => {
+          groqHeaders[key] = val;
+        });
+
         return withCors(
           {
-            error: 'Empty body from Groq (unusual for this API)',
+            error: 'Empty body from Groq',
             httpStatus: groqRes.status,
-            groqBodyBytes: ab.byteLength,
             groqRequestId: reqId || undefined,
-            groqContentType: groqRes.headers.get('content-type') || undefined,
-            groqContentEncoding: groqRes.headers.get('content-encoding') || undefined,
-            hint:
-              'Re-save the Worker secret without spaces or line breaks after the key: npx wrangler secret put GROQ_API_KEY',
+            groqHeaders,
+            keyPrefix: apiKey.slice(0, 8) + '...',
+            payloadSize: payloadJson.length,
+            hint: 'If this persists, generate a fresh API key at console.groq.com/keys and re-save: npx wrangler secret put GROQ_API_KEY',
           },
           groqRes.ok ? 502 : groqRes.status,
         );
       }
+
       let data;
       try {
         data = JSON.parse(rawText);

@@ -10,7 +10,7 @@ const RapidFire = (() => {
     || 'http://localhost:3001';
 
   // Level 5: no time constraint (intentionally relaxed for now)
-  const TIMER_SECS    = 30; // kept for future use
+  const TIMER_SECS = 30; // kept for future use
   const HINT1_TRIGGER = 15; // kept for future use
   const HINT2_TRIGGER = 8;  // kept for future use
 
@@ -33,14 +33,14 @@ const RapidFire = (() => {
 
   const state = {
     questionsAnswered: 0,
-    score:             0,
-    timerSecs:         TIMER_SECS,
-    timerInterval:     null,
-    currentQuestion:   null,  // { en: {type,question,hint1,hint2}, bn: {...} }
-    hintsRevealed:     0,     // 0 = none, 1 = hint1 shown, 2 = both shown
-    hint1Shown:        false,
-    hint2Shown:        false,
-    isEvaluating:      false,
+    score: 0,
+    timerSecs: TIMER_SECS,
+    timerInterval: null,
+    currentQuestion: null,  // { en: {type,question,hint1,hint2}, bn: {...} }
+    hintsRevealed: 0,     // 0 = none, 1 = hint1 shown, 2 = both shown
+    hint1Shown: false,
+    hint2Shown: false,
+    isEvaluating: false,
     questionStartTime: 0,
     /** English question strings already shown this session (de-dupe for AI). */
     recentEnQuestions: [],
@@ -454,8 +454,8 @@ const RapidFire = (() => {
     hideRewardOverlay();
     loadRecentQuestionsFromSession();
     state.questionsAnswered = 0;
-    state.score             = 0;
-    state.currentQuestion   = null;
+    state.score = 0;
+    state.currentQuestion = null;
 
     showScreen('screen-rapidfire');
     updateStats();
@@ -464,9 +464,9 @@ const RapidFire = (() => {
 
   // ── Load & generate a question ────────────────────────────
   async function loadNextQuestion() {
-    state.hint1Shown    = false;
-    state.hint2Shown    = false;
-    state.isEvaluating  = false;
+    state.hint1Shown = false;
+    state.hint2Shown = false;
+    state.isEvaluating = false;
 
     const inp = $('rf-answer-input');
     if (inp) { inp.value = ''; inp.disabled = false; }
@@ -481,8 +481,8 @@ const RapidFire = (() => {
     if (hintBtn) { hintBtn.textContent = '💡 Hint'; hintBtn.disabled = false; hintBtn.classList.remove('used'); }
 
     state.hintsRevealed = 0;
-    state.hint1Shown    = false;
-    state.hint2Shown    = false;
+    state.hint1Shown = false;
+    state.hint2Shown = false;
 
     const submitBtn = $('rf-btn-submit');
     if (submitBtn) submitBtn.disabled = false;
@@ -530,7 +530,7 @@ const RapidFire = (() => {
 
 The question MUST require the student to explain their reasoning in 2–4 sentences — not just give a single number or one-word answer.
 
-Uniqueness: vary the setting, quantities, names, and logical twist compared to any prior questions in this session.
+Uniqueness: vary the setting, quantities, names, and logical twist compared to any prior questions in this session. The question should be engaging and thought-provoking. However, don't create extremely hard questions which is not realistically possible to answer in the context of a game.
 Freshness nonce (must influence details; do not ignore): ${nonce}
 ${historyBlock}
 
@@ -568,7 +568,7 @@ Use this EXACT structure:
   // ── Groq: evaluate the user's answer ─────────────────────
   async function evaluateAnswer(userAnswer) {
     const lang = getLang();
-    const q    = state.currentQuestion[lang];
+    const q = state.currentQuestion[lang];
     const langName = lang === 'en' ? 'English' : 'Bangla';
 
     const rfLevel = (typeof GAME_DATA !== 'undefined' && GAME_DATA.levels)
@@ -636,18 +636,18 @@ Incorrect:
   // ── Render question ───────────────────────────────────────
   function renderQuestion(q) {
     const lang = getLang();
-    const lq   = q[lang];
+    const lq = q[lang];
 
     const badge = $('rf-type-badge');
-    const text  = $('rf-question-text');
-    const h1    = $('rf-hint1');
-    const h2    = $('rf-hint2');
+    const text = $('rf-question-text');
+    const h1 = $('rf-hint1');
+    const h2 = $('rf-hint2');
 
     if (badge) badge.textContent = lq.type;
-    if (text)  text.textContent  = lq.question;
+    if (text) text.textContent = lq.question;
     // Hint text is pre-stored but hidden — revealed on button click
-    if (h1)    h1.textContent    = `💡 ${lq.hint1}`;
-    if (h2)    h2.textContent    = `💡💡 ${lq.hint2}`;
+    if (h1) h1.textContent = `💡 ${lq.hint1}`;
+    if (h2) h2.textContent = `💡💡 ${lq.hint2}`;
 
     updateStats();
     const inp = $('rf-answer-input');
@@ -661,7 +661,7 @@ Incorrect:
 
     state.hintsRevealed++;
     const lang = getLang();
-    const lq   = state.currentQuestion[lang];
+    const lq = state.currentQuestion[lang];
 
     if (state.hintsRevealed === 1) {
       const h1 = $('rf-hint1');
@@ -721,8 +721,8 @@ Incorrect:
     if (!el) return;
     el.textContent = `${state.timerSecs}s`;
     el.className = 'rf-timer'
-      + (state.timerSecs <= 8  ? ' rf-timer-critical' :
-         state.timerSecs <= 15 ? ' rf-timer-warning'  : '');
+      + (state.timerSecs <= 8 ? ' rf-timer-critical' :
+        state.timerSecs <= 15 ? ' rf-timer-warning' : '');
   }
 
   function onTimeUp() {
@@ -762,8 +762,8 @@ Incorrect:
       const result = await evaluateAnswer(answer);
 
       if (result.result === 'correct') {
-        const qScore     = 100;
-        state.score     += qScore;
+        const qScore = 100;
+        state.score += qScore;
         state.questionsAnswered++;
 
         showFeedback(`✓ ${result.feedback}  (+${qScore} pts)`, 'rf-correct');
@@ -802,13 +802,13 @@ Incorrect:
     const el = $('rf-feedback');
     if (!el) return;
     el.textContent = msg;
-    el.className   = `rf-feedback ${cls || ''}`;
+    el.className = `rf-feedback ${cls || ''}`;
   }
 
   function updateStats() {
     const lang = getLang();
-    const qEl  = $('rf-questions-count');
-    const sEl  = $('rf-score-display');
+    const qEl = $('rf-questions-count');
+    const sEl = $('rf-score-display');
     if (qEl) qEl.textContent = lang === 'en'
       ? `${state.questionsAnswered} Survived`
       : `${state.questionsAnswered} উত্তীর্ণ`;
